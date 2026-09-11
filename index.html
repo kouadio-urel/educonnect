@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EduConnect CI</title>
     <link rel="stylesheet" href="style.css">
+    
+    <!-- Scripts Firebase Universels (Chargement garanti sans erreur 404) -->
+    <script src="https://cloudflare.com"></script>
+    <script src="https://cloudflare.com"></script>
 </head>
 <body>
 
@@ -15,12 +19,10 @@
             <h1>EduConnect 🇨🇮</h1>
             <p>Trouve un répétiteur de confiance partout en Côte d'Ivoire.</p>
             
-            <!-- Image d'illustration fonctionnelle -->
             <div class="banner-container">
                 <img src="https://unsplash.com" alt="Élèves et répétiteurs">
             </div>
 
-            <!-- Compteur dynamique en temps réel -->
             <div class="stat-badge">
                 🚀 <span id="compteur-profs">0</span> répétiteurs disponibles actuellement
             </div>
@@ -29,16 +31,14 @@
             <button class="btn btn-prof" onclick="changerOnglet('prof')">👨‍🏫 Je veux donner des cours</button>
         </div>
 
-        <!-- ONGLET 2 : LISTE PROFS POUR LES ÉLÈVES -->
+        <!-- ONGLET 2 : LISTE PROFS -->
         <div id="page-eleve" class="content-area hidden">
             <h1>Trouver un Répétiteur</h1>
             <input type="text" id="moteur-recherche" class="search-bar" placeholder="🔍 Rechercher une ville, matière..." onkeyup="filtrerProfs()">
-            <div id="liste-professeurs">
-                <!-- Les cartes de profs s'injecteront ici dynamiquement -->
-            </div>
+            <div id="liste-professeurs"></div>
         </div>
 
-        <!-- ONGLET 3 : FORMULAIRE D'INSCRIPTION PROF -->
+        <!-- ONGLET 3 : FORMULAIRE -->
         <div id="page-prof" class="content-area hidden">
             <h1>Espace Répétiteur</h1>
             <form id="form-inscription" onsubmit="enregistrerProf(event)">
@@ -77,7 +77,7 @@
             </form>
         </div>
 
-        <!-- BARRE DE NAVIGATION FIXE EN BAS -->
+        <!-- BARRE DE NAVIGATION -->
         <div class="nav-bar">
             <div id="tab-accueil" class="nav-item active" onclick="changerOnglet('accueil')">Accueil</div>
             <div id="tab-eleve" class="nav-item" onclick="changerOnglet('eleve')">Élèves</div>
@@ -86,9 +86,6 @@
 
     </div>
 
-    <!-- Chargement ordonné en bas de page pour éviter le conflit d'initialisation -->
-    <script src="https://gstatic.com"></script>
-    <script src="https://gstatic.com"></script>
     <script src="app.js"></script>
 </body>
 </html>

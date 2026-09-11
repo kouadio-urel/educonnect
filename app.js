@@ -1,6 +1,3 @@
-// ==========================================
-// 1. CONFIGURATION ET VARIABLES INITIALES
-// ==========================================
 const firebaseConfig = {
     apiKey: "AIzaSyBOBxcf0Y3VSIARUXsymUvJOZWSnZGFWf0",
     authDomain: "://firebaseapp.com",
@@ -12,54 +9,36 @@ const firebaseConfig = {
     measurementId: "G-JREBB4V314"
 };
 
-// Les variables globales doivent être déclarées TOUT EN HAUT
 let listeProfs = [];
 const CODE_SECRET_ADMIN = "225_ADMIN"; 
-let dbRefProfs = null;
-let db = null;
 
-// ==========================================
-// 2. INITIALISATION ET ÉCOUTE CLOUD
-// ==========================================
-// Attendre le chargement complet de la page pour éviter le bug "firebase is not defined"
-document.addEventListener("DOMContentLoaded", () => {
-    if (typeof firebase !== 'undefined') {
-        firebase.initializeApp(firebaseConfig);
-        db = firebase.database();
-        dbRefProfs = db.ref('professeurs');
+// Initialisation immédiate et sécurisée
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const dbRefProfs = db.ref('professeurs');
 
-        // Lancement de l'écoute Cloud en temps réel
-        dbRefProfs.on('value', (snapshot) => {
-            const donnees = snapshot.val();
-            listeProfs = [];
-            
-            if (donnees) {
-                Object.keys(donnees).forEach(idUnique => {
-                    listeProfs.push({
-                        id: idUnique,
-                        ...donnees[idUnique]
-                    });
-                });
-            }
-            
-            actualiserCompteur();
-            afficherTousLesProfs();
+// Écoute Cloud en temps réel
+dbRefProfs.on('value', (snapshot) => {
+    const donnees = snapshot.val();
+    listeProfs = [];
+    
+    if (donnees) {
+        Object.keys(donnees).forEach(idUnique => {
+            listeProfs.push({
+                id: idUnique,
+                ...donnees[idUnique]
+            });
         });
-    } else {
-        console.error("Firebase n'a pas pu être chargé depuis les serveurs Google.");
     }
+    actualiserCompteur();
+    afficherTousLesProfs();
 });
 
 function actualiserCompteur() {
     const compteur = document.getElementById('compteur-profs');
-    if (compteur) {
-        compteur.innerText = listeProfs.length;
-    }
+    if (compteur) compteur.innerText = listeProfs.length;
 }
 
-// ==========================================
-// 3. LOGIQUE D'AFFICHAGE ET RECHERCHE
-// ==========================================
 function afficherTousLesProfs() {
     const conteneur = document.getElementById('liste-professeurs');
     if (!conteneur) return;
@@ -97,21 +76,15 @@ window.filtrerProfs = function() {
     var cartes = document.getElementsByClassName('prof-card');
     for (var i = 0; i < cartes.length; i++) {
         var texte = cartes[i].getAttribute('data-search');
-        if (texte.includes(saisie)) {
-            cartes[i].classList.remove('hidden');
-        } else {
-            cartes[i].classList.add('hidden');
-        }
+        if (texte.includes(saisie)) cartes[i].classList.remove('hidden');
+        else cartes[i].classList.add('hidden');
     }
 }
 
-// ==========================================
-// 4. ACTIONS INTERACTIVES SÉCURISÉES
-// ==========================================
 window.likerProf = function(idUnique, noteActuelle) {
-    if (noteActuelle < 5 && db) {
+    if (noteActuelle < 5) {
         db.ref('professeurs/' + idUnique).update({ note: noteActuelle + 1 });
-        alert("Merci pour votre vote ! Note cloud mise à jour.");
+        alert("Merci pour votre vote !");
     } else {
         alert("Cet enseignant a déjà 5 étoiles !");
     }
@@ -119,11 +92,9 @@ window.likerProf = function(idUnique, noteActuelle) {
 
 window.supprimerProfSécure = function(idUnique) {
     let motDePasse = prompt("🔒 Entrez le code secret Admin pour supprimer :");
-    if (motDePasse === CODE_SECRET_ADMIN && db) {
+    if (motDePasse === CODE_SECRET_ADMIN) {
         if (confirm("Confirmez-vous le retrait de cet enseignant ?")) {
-            db.ref('professeurs/' + idUnique).remove()
-                .then(() => alert("Enseignant retiré du Cloud."))
-                .catch((err) => alert("Erreur : " + err));
+            db.ref('professeurs/' + idUnique).remove();
         }
     } else {
         alert("❌ Code incorrect.");
@@ -134,42 +105,36 @@ window.ouvrirWhatsApp = function(numero, matiere) {
     var message = "Bonjour, je vous contacte depuis l'application EduConnect CI car j'ai besoin d'un répétiteur en " + matiere + ".";
     var messageEncode = encodeURIComponent(message);
     let numPropre = numero.replace(/[^0-9]/g, ''); 
-    if (!numPropre.startsWith('225') && numPropre.length === 10) {
-        numPropre = '225' + numPropre; 
-    }
+    if (!numPropre.startsWith('225') && numPropre.length === 10) numPropre = '225' + numPropre; 
     window.open("https://wa.me" + numPropre + "?text=" + messageEncode, '_blank');
 }
 
 window.enregistrerProf = function(event) {
     event.preventDefault(); 
-    
     var nom = document.getElementById('nom').value;
     var matiere = document.getElementById('matiere').value;
     var ville = document.getElementById('ville').value;
     var quartier = document.getElementById('quartier').value;
     var whatsapp = document.getElementById('whatsapp').value;
 
-    if (dbRefProfs) {
-        dbRefProfs.push({
-            nom: nom,
-            matiere: matiere,
-            ville: ville,
-            quartier: quartier,
-            whatsapp: whatsapp,
-            note: 3 
-        }).then(() => {
-            alert("Profil enregistré en direct dans Firebase !");
-            document.getElementById('form-inscription').reset();
-            changerOnglet('eleve');
-        }).catch((err) => alert("Erreur : " + err));
-    }
+    dbRefProfs.push({
+        nom: nom,
+        matiere: matiere,
+        ville: ville,
+        quartier: quartier,
+        whatsapp: whatsapp,
+        note: 3 
+    }).then(() => {
+        alert("Profil enregistré !");
+        document.getElementById('form-inscription').reset();
+        changerOnglet('eleve');
+    });
 }
 
 window.changerOnglet = function(nomOnglet) {
     document.getElementById('page-accueil').classList.add('hidden');
     document.getElementById('page-eleve').classList.add('hidden');
     document.getElementById('page-prof').classList.add('hidden');
-
     document.getElementById('tab-accueil').classList.remove('active');
     document.getElementById('tab-eleve').classList.remove('active');
     document.getElementById('tab-prof').classList.remove('active');
