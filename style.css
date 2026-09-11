@@ -1,0 +1,178 @@
+body { 
+    font-family: Arial, sans-serif; 
+    background: linear-gradient(135deg, #74b9ff, #a29bfe); 
+    height: 100vh; 
+    margin: 0; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+}
+
+.phone-container { 
+    width: 360px; 
+    height: 600px; 
+    background: #f8f9fa; 
+    border-radius: 25px; 
+    box-shadow: 0 15px 35px rgba(0,0,0,0.3); 
+    position: relative; 
+    display: flex; 
+    flex-direction: column; 
+    overflow: hidden; 
+}
+
+.content-area { 
+    flex: 1; 
+    padding: 20px; 
+    overflow-y: auto; 
+    margin-bottom: 65px; 
+}
+
+h1 { color: #2d3436; font-size: 22px; text-align: center; margin-bottom: 10px; }
+p { color: #636e72; font-size: 14px; text-align: center; margin-bottom: 20px; }
+
+/* Badge de statistiques sur l'accueil */
+.stat-badge {
+    background-color: #e3faf2;
+    color: #00b894;
+    padding: 10px;
+    border-radius: 12px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 25px;
+    border: 1px solid #b3f5e4;
+}
+
+.search-bar { 
+    width: 100%; 
+    padding: 12px; 
+    margin-bottom: 15px; 
+    border: 1px solid #dfe6e9; 
+    border-radius: 10px; 
+    box-sizing: border-box; 
+    outline: none;
+}
+
+.form-group { text-align: left; margin-bottom: 15px; }
+.form-group label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 6px; color: #2d3436; }
+.form-group input, .form-group select { 
+    width: 100%; 
+    padding: 10px; 
+    border: 1px solid #ccc; 
+    border-radius: 8px; 
+    box-sizing: border-box; 
+}
+
+/* Cartes des Répétiteurs */
+.prof-card { 
+    background: white; 
+    padding: 15px; 
+    border-radius: 12px; 
+    margin-bottom: 12px; 
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05); 
+    border-left: 5px solid #0984e3; 
+    text-align: left;
+    position: relative;
+}
+.prof-card h3 { margin: 0 0 5px 0; font-size: 16px; color: #2d3436; }
+.prof-card p { margin: 3px 0; font-size: 13px; color: #636e72; text-align: left; }
+
+/* Boutons */
+.btn { 
+    display: block; 
+    width: 100%; 
+    padding: 12px; 
+    margin: 10px 0; 
+    font-size: 15px; 
+    font-weight: bold; 
+    color: white; 
+    border: none; 
+    border-radius: 10px; 
+    cursor: pointer; 
+    text-align: center; 
+    text-decoration: none; 
+}
+.btn-eleve { background: #0984e3; }
+.btn-prof { background: #00b894; }
+
+.action-row {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+.btn-whatsapp { 
+    background-color: #25D366; 
+    color: white; 
+    padding: 6px 10px; 
+    font-size: 11px; 
+    border-radius: 6px; 
+    text-decoration: none; 
+    font-weight: bold; 
+    border: none;
+    cursor: pointer;
+}
+
+.btn-like {
+    background-color: #dfe6e9;
+    color: #2d3436;
+    padding: 6px 10px;
+    font-size: 11px;
+    border-radius: 6px;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-supprimer {
+    background-color: #d63031;
+    color: white;
+    padding: 6px 10px;
+    font-size: 11px;
+    border-radius: 6px;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+}
+
+/* Barre de navigation */
+.nav-bar { 
+    position: absolute; 
+    bottom: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 65px; 
+    background: white; 
+    display: flex; 
+    border-top: 1px solid #e0e0e0; 
+    z-index: 999; 
+}
+.nav-item { 
+    flex: 1; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    color: #b2bec3; 
+    cursor: pointer; 
+    font-size: 14px; 
+    font-weight: bold; 
+    height: 100%; 
+}
+.nav-item.active { color: #0984e3; }
+.hidden { display: none !important; }
+/* Style du conteneur d'image d'accueil */
+.banner-container {
+    width: 100%;
+    height: 160px;
+    border-radius: 15px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+.banner-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Adapte parfaitement l'image sans la déformer */
+}
+
