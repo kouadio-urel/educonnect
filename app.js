@@ -1,10 +1,10 @@
 // ==========================================
-// 1. CONFIGURATION ET CONNEXION FIREBASE (Clés de Kouakou)
+// 1. CONFIGURATION ET CONNEXION FIREBASE
 // ==========================================
 const firebaseConfig = {
     apiKey: "AIzaSyBOBxcf0Y3VSIARUXsymUvJOZWSnZGFWf0",
     authDomain: "://firebaseapp.com",
-    databaseURL: "https://educonnect-ci-35f82-default-rtdb.firebaseio.com",
+    databaseURL: "https://firebaseio.com",
     projectId: "educonnect-ci-35f82",
     storageBucket: "educonnect-ci-35f82.firebasestorage.app",
     messagingSenderId: "12681914837",
@@ -12,22 +12,18 @@ const firebaseConfig = {
     measurementId: "G-JREBB4V314"
 };
 
-// Initialisation de Firebase via les CDN officiels de Google
-import { initializeApp } from "https://gstatic.com";
-import { getDatabase, ref, set, push, onValue, update, remove } from "https://gstatic.com";
+// Initialisation globale
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const dbRefProfs = db.ref('professeurs');
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-const dbRefProfs = ref(db, 'professeurs');
-
-// Variables globales de l'application
 let listeProfs = [];
 const CODE_SECRET_ADMIN = "225_ADMIN"; 
 
 // ==========================================
-// 2. ÉCOUTE ET SYNCHRONISATION CLOUD EN TEMPS RÉEL
+// 2. ÉCOUTE EN TEMPS RÉEL (CLOUD)
 // ==========================================
-onValue(dbRefProfs, (snapshot) => {
+dbRefProfs.on('value', (snapshot) => {
     const donnees = snapshot.val();
     listeProfs = [];
     
@@ -52,10 +48,11 @@ function actualiserCompteur() {
 }
 
 // ==========================================
-// 3. AFFICHAGE DES CARTES ET ACTIONS ÉLÈVES / ADMIN
+// 3. LOGIQUE D'AFICHAGE ET RECHERCHE
 // ==========================================
 function afficherTousLesProfs() {
     const conteneur = document.getElementById('liste-professeurs');
+    if (!conteneur) return;
     conteneur.innerHTML = ""; 
 
     if (listeProfs.length === 0) {
@@ -68,16 +65,16 @@ function afficherTousLesProfs() {
         carte.className = 'prof-card';
         carte.setAttribute('data-search', (prof.matiere + ' ' + prof.ville + ' ' + prof.quartier).toLowerCase());
         
-        let etoiles = "⭐".repeat(prof.note);
+        let etoiles = "⭐".repeat(prof.note || 3);
 
         carte.innerHTML = `
             <h3>${prof.nom}</h3>
             <p>📚 <b>Matière :</b> ${prof.matiere}</p>
             <p>📍 <b>Lieu :</b> ${prof.ville} - ${prof.quartier}</p>
-            <p><b>Avis des élèves :</b> ${etoiles}</p>
+            <p><b>Avis :</b> ${etoiles}</p>
             <div class="action-row">
                 <button class="btn-whatsapp" onclick="ouvrirWhatsApp('${prof.whatsapp}', '${prof.matiere}')">💬 WhatsApp</button>
-                <button class="btn-like" onclick="likerProf('${prof.id}', ${prof.note})">👍 Voter (+1 Étoile)</button>
+                <button class="btn-like" onclick="likerProf('${prof.id}', ${prof.note || 3})">👍 Voter</button>
                 <button class="btn-supprimer" onclick="supprimerProfSécure('${prof.id}')">🗑 Retirer (Admin)</button>
             </div>
         `;
@@ -85,8 +82,7 @@ function afficherTousLesProfs() {
     });
 }
 
-// FONCTIONNALITÉ FILTRE ET RECHERCHE
-window.filtrerProfs = function() {
+function filtrerProfs() {
     var saisie = document.getElementById('moteur-recherche').value.toLowerCase();
     var cartes = document.getElementsByClassName('prof-card');
     for (var i = 0; i < cartes.length; i++) {
@@ -99,55 +95,42 @@ window.filtrerProfs = function() {
     }
 }
 
-// ACTION ÉLÈVE : Voter (Mise à jour en temps réel sur le Cloud)
-window.likerProf = function(idUnique, noteActuelle) {
+// ==========================================
+// 4. ACTIONS INTERACTIVES SÉCURISÉES
+// ==========================================
+function likerProf(idUnique, noteActuelle) {
     if (noteActuelle < 5) {
-        const profRef = ref(db, 'professeurs/' + idUnique);
-        update(profRef, { note: noteActuelle + 1 });
-        alert("Merci pour ton vote d'élève ! La note cloud a été mise à jour.");
+        db.ref('professeurs/' + idUnique).update({ note: noteActuelle + 1 });
+        alert("Merci pour votre vote ! Note cloud mise à jour.");
     } else {
-        alert("Cet enseignant a déjà la note maximale de 5 étoiles !");
+        alert("Cet enseignant a déjà 5 étoiles !");
     }
-};
+}
 
-// ACTION ADMIN : Supprimer (Protégé par ton mot de passe)
-window.supprimerProfSécure = function(idUnique) {
-    let motDePasse = prompt("🔒 Action réservée à la direction. Entrez le code secret Admin pour supprimer :");
-    
+function supprimerProfSécure(idUnique) {
+    let motDePasse = prompt("🔒 Entrez le code secret Admin pour supprimer :");
     if (motDePasse === CODE_SECRET_ADMIN) {
-        if (confirm("Confirmez-vous le retrait de cet enseignant de la plateforme ?")) {
-            const profRef = ref(db, 'professeurs/' + idUnique);
-            remove(profRef)
-                .then(() => alert("Enseignant retiré du Cloud avec succès."))
-                .catch((error) => alert("Erreur lors de la suppression : " + error));
+        if (confirm("Confirmez-vous le retrait de cet enseignant ?")) {
+            db.ref('professeurs/' + idUnique).remove()
+                .then(() => alert("Enseignant retiré du Cloud."))
+                .catch((err) => alert("Erreur : " + err));
         }
     } else {
-        alert("❌ Code incorrect. Action annulée.");
+        alert("❌ Code incorrect.");
     }
-};
+}
 
-// ==========================================
-// 4. ROUTAGE EXTERNE AVEC NETTOYAGE WHATSAPP STRICT
-// ==========================================
-window.ouvrirWhatsApp = function(numero, matiere) {
+function ouvrirWhatsApp(numero, matiere) {
     var message = "Bonjour, je vous contacte depuis l'application EduConnect CI car j'ai besoin d'un répétiteur en " + matiere + ".";
     var messageEncode = encodeURIComponent(message);
-    
-    // Nettoyage complet : supprime espaces, tirets et caractères invalides
     let numPropre = numero.replace(/[^0-9]/g, ''); 
-    
-    // Ajout automatique de l'indicatif 225 
     if (!numPropre.startsWith('225') && numPropre.length === 10) {
         numPropre = '225' + numPropre; 
     }
-    
-    // API universelle wa.me pour cibler directement le compte de la personne
-    var urlComplete = "https://wa.me" + numPropre + "?text=" + messageEncode;
-    window.open(urlComplete, '_blank');
+    window.open("https://wa.me" + numPropre + "?text=" + messageEncode, '_blank');
 }
 
-// AJOUTER UN NOUVEAU ENSEIGNANT DANS LE CLOUD GOOGLE
-window.enregistrerProf = function(event) {
+function enregistrerProf(event) {
     event.preventDefault(); 
     
     var nom = document.getElementById('nom').value;
@@ -156,9 +139,7 @@ window.enregistrerProf = function(event) {
     var quartier = document.getElementById('quartier').value;
     var whatsapp = document.getElementById('whatsapp').value;
 
-    const nouveauProfRef = push(dbRefProfs);
-    
-    set(nouveauProfRef, {
+    dbRefProfs.push({
         nom: nom,
         matiere: matiere,
         ville: ville,
@@ -166,16 +147,13 @@ window.enregistrerProf = function(event) {
         whatsapp: whatsapp,
         note: 3 
     }).then(() => {
-        alert("Félicitations ! Ton profil de prof est enregistré dans Firebase et visible en direct !");
+        alert("Profil enregistré en direct dans Firebase !");
         document.getElementById('form-inscription').reset();
         changerOnglet('eleve');
-    }).catch((error) => {
-        alert("Erreur de connexion au serveur Cloud : " + error);
-    });
-};
+    }).catch((err) => alert("Erreur : " + err));
+}
 
-// ROUTAGE DES ONGLETS DE L'APPLICATION
-window.changerOnglet = function(nomOnglet) {
+function changerOnglet(nomOnglet) {
     document.getElementById('page-accueil').classList.add('hidden');
     document.getElementById('page-eleve').classList.add('hidden');
     document.getElementById('page-prof').classList.add('hidden');
@@ -196,9 +174,3 @@ window.changerOnglet = function(nomOnglet) {
         document.getElementById('tab-prof').classList.add('active');
     }
 }
-
-// Lancement automatique au chargement initial
-document.addEventListener("DOMContentLoaded", () => {
-    actualiserCompteur();
-    afficherTousLesProfs();
-});

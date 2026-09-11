@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EduConnect CI</title>
     <link rel="stylesheet" href="style.css">
+    
+    <!-- Chargement sécurisé de Firebase (Version Standard compatible partout) -->
+    <script src="https://gstatic.com"></script>
+    <script src="https://gstatic.com"></script>
 </head>
 <body>
 
@@ -15,9 +19,9 @@
             <h1>EduConnect 🇨🇮</h1>
             <p>Trouve un répétiteur de confiance partout en Côte d'Ivoire.</p>
             
-            <!-- Nouvelle image illustrative moderne -->
+            <!-- Image d'illustration fonctionnelle -->
             <div class="banner-container">
-                <img src="https://unsplash.com" alt="Élèves et répétiteurs souriants">
+                <img src="https://unsplash.com" alt="Élèves et répétiteurs">
             </div>
 
             <!-- Compteur dynamique en temps réel -->
@@ -86,7 +90,7 @@
 
     </div>
 
-    <!-- Activation impérative du module pour Firebase -->
-    <script type="module" src="app.js"></script>
+    <!-- Script standard sans type="module" pour éviter le blocage CORS -->
+    <script src="app.js"></script>
 </body>
 </html>
