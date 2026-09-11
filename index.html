@@ -5,10 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EduConnect CI</title>
     <link rel="stylesheet" href="style.css">
-    
-    <!-- Chargement sécurisé de Firebase (Version Standard compatible partout) -->
-    <script src="https://gstatic.com"></script>
-    <script src="https://gstatic.com"></script>
 </head>
 <body>
 
@@ -90,7 +86,9 @@
 
     </div>
 
-    <!-- Script standard sans type="module" pour éviter le blocage CORS -->
+    <!-- Chargement ordonné en bas de page pour éviter le conflit d'initialisation -->
+    <script src="https://gstatic.com"></script>
+    <script src="https://gstatic.com"></script>
     <script src="app.js"></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 // ==========================================
-// 1. CONFIGURATION ET CONNEXION FIREBASE
+// 1. CONFIGURATION ET VARIABLES INITIALES
 // ==========================================
 const firebaseConfig = {
     apiKey: "AIzaSyBOBxcf0Y3VSIARUXsymUvJOZWSnZGFWf0",
@@ -12,32 +12,42 @@ const firebaseConfig = {
     measurementId: "G-JREBB4V314"
 };
 
-// Initialisation globale
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-const dbRefProfs = db.ref('professeurs');
-
+// Les variables globales doivent être déclarées TOUT EN HAUT
 let listeProfs = [];
 const CODE_SECRET_ADMIN = "225_ADMIN"; 
+let dbRefProfs = null;
+let db = null;
 
 // ==========================================
-// 2. ÉCOUTE EN TEMPS RÉEL (CLOUD)
+// 2. INITIALISATION ET ÉCOUTE CLOUD
 // ==========================================
-dbRefProfs.on('value', (snapshot) => {
-    const donnees = snapshot.val();
-    listeProfs = [];
-    
-    if (donnees) {
-        Object.keys(donnees).forEach(idUnique => {
-            listeProfs.push({
-                id: idUnique,
-                ...donnees[idUnique]
-            });
+// Attendre le chargement complet de la page pour éviter le bug "firebase is not defined"
+document.addEventListener("DOMContentLoaded", () => {
+    if (typeof firebase !== 'undefined') {
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.database();
+        dbRefProfs = db.ref('professeurs');
+
+        // Lancement de l'écoute Cloud en temps réel
+        dbRefProfs.on('value', (snapshot) => {
+            const donnees = snapshot.val();
+            listeProfs = [];
+            
+            if (donnees) {
+                Object.keys(donnees).forEach(idUnique => {
+                    listeProfs.push({
+                        id: idUnique,
+                        ...donnees[idUnique]
+                    });
+                });
+            }
+            
+            actualiserCompteur();
+            afficherTousLesProfs();
         });
+    } else {
+        console.error("Firebase n'a pas pu être chargé depuis les serveurs Google.");
     }
-    
-    actualiserCompteur();
-    afficherTousLesProfs();
 });
 
 function actualiserCompteur() {
@@ -48,7 +58,7 @@ function actualiserCompteur() {
 }
 
 // ==========================================
-// 3. LOGIQUE D'AFICHAGE ET RECHERCHE
+// 3. LOGIQUE D'AFFICHAGE ET RECHERCHE
 // ==========================================
 function afficherTousLesProfs() {
     const conteneur = document.getElementById('liste-professeurs');
@@ -82,7 +92,7 @@ function afficherTousLesProfs() {
     });
 }
 
-function filtrerProfs() {
+window.filtrerProfs = function() {
     var saisie = document.getElementById('moteur-recherche').value.toLowerCase();
     var cartes = document.getElementsByClassName('prof-card');
     for (var i = 0; i < cartes.length; i++) {
@@ -98,8 +108,8 @@ function filtrerProfs() {
 // ==========================================
 // 4. ACTIONS INTERACTIVES SÉCURISÉES
 // ==========================================
-function likerProf(idUnique, noteActuelle) {
-    if (noteActuelle < 5) {
+window.likerProf = function(idUnique, noteActuelle) {
+    if (noteActuelle < 5 && db) {
         db.ref('professeurs/' + idUnique).update({ note: noteActuelle + 1 });
         alert("Merci pour votre vote ! Note cloud mise à jour.");
     } else {
@@ -107,9 +117,9 @@ function likerProf(idUnique, noteActuelle) {
     }
 }
 
-function supprimerProfSécure(idUnique) {
+window.supprimerProfSécure = function(idUnique) {
     let motDePasse = prompt("🔒 Entrez le code secret Admin pour supprimer :");
-    if (motDePasse === CODE_SECRET_ADMIN) {
+    if (motDePasse === CODE_SECRET_ADMIN && db) {
         if (confirm("Confirmez-vous le retrait de cet enseignant ?")) {
             db.ref('professeurs/' + idUnique).remove()
                 .then(() => alert("Enseignant retiré du Cloud."))
@@ -120,7 +130,7 @@ function supprimerProfSécure(idUnique) {
     }
 }
 
-function ouvrirWhatsApp(numero, matiere) {
+window.ouvrirWhatsApp = function(numero, matiere) {
     var message = "Bonjour, je vous contacte depuis l'application EduConnect CI car j'ai besoin d'un répétiteur en " + matiere + ".";
     var messageEncode = encodeURIComponent(message);
     let numPropre = numero.replace(/[^0-9]/g, ''); 
@@ -130,7 +140,7 @@ function ouvrirWhatsApp(numero, matiere) {
     window.open("https://wa.me" + numPropre + "?text=" + messageEncode, '_blank');
 }
 
-function enregistrerProf(event) {
+window.enregistrerProf = function(event) {
     event.preventDefault(); 
     
     var nom = document.getElementById('nom').value;
@@ -139,21 +149,23 @@ function enregistrerProf(event) {
     var quartier = document.getElementById('quartier').value;
     var whatsapp = document.getElementById('whatsapp').value;
 
-    dbRefProfs.push({
-        nom: nom,
-        matiere: matiere,
-        ville: ville,
-        quartier: quartier,
-        whatsapp: whatsapp,
-        note: 3 
-    }).then(() => {
-        alert("Profil enregistré en direct dans Firebase !");
-        document.getElementById('form-inscription').reset();
-        changerOnglet('eleve');
-    }).catch((err) => alert("Erreur : " + err));
+    if (dbRefProfs) {
+        dbRefProfs.push({
+            nom: nom,
+            matiere: matiere,
+            ville: ville,
+            quartier: quartier,
+            whatsapp: whatsapp,
+            note: 3 
+        }).then(() => {
+            alert("Profil enregistré en direct dans Firebase !");
+            document.getElementById('form-inscription').reset();
+            changerOnglet('eleve');
+        }).catch((err) => alert("Erreur : " + err));
+    }
 }
 
-function changerOnglet(nomOnglet) {
+window.changerOnglet = function(nomOnglet) {
     document.getElementById('page-accueil').classList.add('hidden');
     document.getElementById('page-eleve').classList.add('hidden');
     document.getElementById('page-prof').classList.add('hidden');
