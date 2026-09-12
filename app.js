@@ -1,6 +1,6 @@
-// ==========================================
-// 1. CONFIGURATION ET CONNEXION CLOUD FIREBASE
-// ==========================================
+import { initializeApp } from "https://skypack.dev";
+import { getDatabase, ref, push, onValue, update, remove } from "https://skypack.dev";
+
 const firebaseConfig = {
     apiKey: "AIzaSyBOBxcf0Y3VSIARUXsymUvJOZWSnZGFWf0",
     authDomain: "://firebaseapp.com",
@@ -12,16 +12,16 @@ const firebaseConfig = {
     measurementId: "G-JREBB4V314"
 };
 
-// Initialisation globale de Firebase
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-const dbRefProfs = db.ref('professeurs');
+// Initialisation
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const dbRefProfs = ref(db, 'professeurs');
 
 let listeProfs = [];
 const CODE_SECRET_ADMIN = "225_ADMIN"; 
 
-// Synchronisation automatique et immédiate avec la base de données de Google
-dbRefProfs.on('value', (snapshot) => {
+// Synchronisation en temps réel avec Firebase
+onValue(dbRefProfs, (snapshot) => {
     const donnees = snapshot.val();
     listeProfs = [];
     
@@ -37,9 +37,6 @@ dbRefProfs.on('value', (snapshot) => {
     afficherTousLesProfs();
 });
 
-// ==========================================
-// 2. LOGIQUE METIER ET COMPTEUR
-// ==========================================
 function actualiserCompteur() {
     const compteur = document.getElementById('compteur-profs');
     if (compteur) compteur.innerText = listeProfs.length;
@@ -68,16 +65,21 @@ function afficherTousLesProfs() {
             <p>📍 <b>Lieu :</b> ${prof.ville} - ${prof.quartier}</p>
             <p><b>Avis :</b> ${etoiles}</p>
             <div class="action-row">
-                <button class="btn-whatsapp" onclick="ouvrirWhatsApp('${prof.whatsapp}', '${prof.matiere}')">💬 WhatsApp</button>
-                <button class="btn-like" onclick="likerProf('${prof.id}', ${prof.note || 3})">👍 Voter</button>
-                <button class="btn-supprimer" onclick="supprimerProfSécure('${prof.id}')">🗑 Retirer (Admin)</button>
+                <button class="btn-whatsapp" id="wa-${prof.id}">💬 WhatsApp</button>
+                <button class="btn-like" id="like-${prof.id}">👍 Voter</button>
+                <button class="btn-supprimer" id="del-${prof.id}">🗑 Retirer (Admin)</button>
             </div>
         `;
         conteneur.appendChild(carte);
+
+        // Liaison des événements de manière moderne pour éviter les blocages de sécurité
+        document.getElementById(`wa-${prof.id}`).addEventListener('click', () => ouvrirWhatsApp(prof.whatsapp, prof.matiere));
+        document.getElementById(`like-${prof.id}`).addEventListener('click', () => likerProf(prof.id, prof.note || 3));
+        document.getElementById(`del-${prof.id}`).addEventListener('click', () => supprimerProfSécure(prof.id));
     });
 }
 
-window.filtrerProfs = function() {
+function filtrerProfs() {
     var saisie = document.getElementById('moteur-recherche').value.toLowerCase();
     var cartes = document.getElementsByClassName('prof-card');
     for (var i = 0; i < cartes.length; i++) {
@@ -86,32 +88,31 @@ window.filtrerProfs = function() {
         else cartes[i].classList.add('hidden');
     }
 }
+window.filtrerProfs = filtrerProfs;
 
-// ==========================================
-// 3. PERSISTANCE ACTIONS (WRITE & DELETE CLOUD)
-// ==========================================
-window.likerProf = function(idUnique, noteActuelle) {
+function likerProf(idUnique, noteActuelle) {
     if (noteActuelle < 5) {
-        db.ref('professeurs/' + idUnique).update({ note: noteActuelle + 1 });
+        const profRef = ref(db, 'professeurs/' + idUnique);
+        update(profRef, { note: noteActuelle + 1 });
         alert("Merci pour ton vote !");
     } else {
         alert("Cet enseignant a déjà 5 étoiles !");
     }
 }
 
-window.supprimerProfSécure = function(idUnique) {
+function supprimerProfSécure(idUnique) {
     let motDePasse = prompt("🔒 Entrez le code secret Admin pour supprimer :");
     if (motDePasse === CODE_SECRET_ADMIN) {
         if (confirm("Confirmez-vous le retrait de cet enseignant ?")) {
-            db.ref('professeurs/' + idUnique).remove()
-                .then(() => alert("Enseignant retiré de Firebase."));
+            const profRef = ref(db, 'professeurs/' + idUnique);
+            remove(profRef).then(() => alert("Enseignant retiré de Firebase."));
         }
     } else {
         alert("❌ Code incorrect.");
     }
 }
 
-window.ouvrirWhatsApp = function(numero, matiere) {
+function ouvrirWhatsApp(numero, matiere) {
     var message = "Bonjour, je vous contacte depuis l'application EduConnect CI car j'ai besoin d'un répétiteur en " + matiere + ".";
     var messageEncode = encodeURIComponent(message);
     let numPropre = numero.replace(/[^0-9]/g, ''); 
@@ -119,7 +120,7 @@ window.ouvrirWhatsApp = function(numero, matiere) {
     window.open("https://wa.me" + numPropre + "?text=" + messageEncode, '_blank');
 }
 
-window.enregistrerProf = function(event) {
+function enregistrerProf(event) {
     event.preventDefault(); 
     var nom = document.getElementById('nom').value;
     var matiere = document.getElementById('matiere').value;
@@ -127,7 +128,7 @@ window.enregistrerProf = function(event) {
     var quartier = document.getElementById('quartier').value;
     var whatsapp = document.getElementById('whatsapp').value;
 
-    dbRefProfs.push({
+    push(dbRefProfs, {
         nom: nom,
         matiere: matiere,
         ville: ville,
@@ -135,13 +136,14 @@ window.enregistrerProf = function(event) {
         whatsapp: whatsapp,
         note: 3 
     }).then(() => {
-        alert("Félicitations ! Votre profil est enregistré sur la base de données Google !");
+        alert("Félicitations ! Votre profil est enregistré sur Firebase !");
         document.getElementById('form-inscription').reset();
         changerOnglet('eleve');
-    }).catch((err) => alert("Erreur d'écriture : " + err));
+    }).catch((err) => alert("Erreur : " + err));
 }
+window.enregistrerProf = enregistrerProf;
 
-window.changerOnglet = function(nomOnglet) {
+function changerOnglet(nomOnglet) {
     document.getElementById('page-accueil').classList.add('hidden');
     document.getElementById('page-eleve').classList.add('hidden');
     document.getElementById('page-prof').classList.add('hidden');
@@ -162,3 +164,4 @@ window.changerOnglet = function(nomOnglet) {
         document.getElementById('tab-prof').classList.add('active');
     }
 }
+window.changerOnglet = changerOnglet;

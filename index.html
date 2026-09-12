@@ -5,10 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EduConnect CI</title>
     <link rel="stylesheet" href="style.css">
-
-    <!-- CDN Firebase universels et ultra-compatibles (Moteur V7) -->
-    <script src="https://gstatic.com"></script>
-    <script src="https://gstatic.com"></script>
 </head>
 <body>
 
@@ -19,7 +15,7 @@
             <h1>EduConnect 🇨🇮</h1>
             <p>Trouve un répétiteur de confiance partout en Côte d'Ivoire.</p>
 
-            <!-- Compteur dynamique relié au Cloud -->
+            <!-- Compteur dynamique -->
             <div class="stat-badge">
                 🚀 <span id="compteur-profs">0</span> répétiteurs disponibles actuellement
             </div>
@@ -28,12 +24,12 @@
             <button class="btn btn-prof" onclick="changerOnglet('prof')">👨‍🏫 Je veux donner des cours</button>
         </div>
 
-        <!-- ONGLET 2 : LISTE PROFS POUR LES ÉLÈVES -->
+        <!-- ONGLET 2 : LISTE PROFS PARA LES ÉLÈVES -->
         <div id="page-eleve" class="content-area hidden">
             <h1>Trouver un Répétiteur</h1>
             <input type="text" id="moteur-recherche" class="search-bar" placeholder="🔍 Rechercher une ville, matière..." onkeyup="filtrerProfs()">
             <div id="liste-professeurs">
-                <!-- Les cartes s'injecteront ici en temps réel -->
+                <!-- Les cartes s'injecteront ici -->
             </div>
         </div>
 
@@ -85,6 +81,7 @@
 
     </div>
 
-    <script src="app.js"></script>
+    <!-- On force l'exécution en module pour autoriser les connexions sécurisées -->
+    <script type="module" src="app.js"></script>
 </body>
 </html>
