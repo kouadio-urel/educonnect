@@ -1,3 +1,6 @@
+// ==========================================
+// 1. CONFIGURATION ET CONNEXION CLOUD FIREBASE
+// ==========================================
 const firebaseConfig = {
     apiKey: "AIzaSyBOBxcf0Y3VSIARUXsymUvJOZWSnZGFWf0",
     authDomain: "://firebaseapp.com",
@@ -9,15 +12,15 @@ const firebaseConfig = {
     measurementId: "G-JREBB4V314"
 };
 
-let listeProfs = [];
-const CODE_SECRET_ADMIN = "225_ADMIN"; 
-
-// Initialisation immédiate et sécurisée
+// Initialisation globale de Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const dbRefProfs = db.ref('professeurs');
 
-// Écoute Cloud en temps réel
+let listeProfs = [];
+const CODE_SECRET_ADMIN = "225_ADMIN"; 
+
+// Synchronisation automatique et immédiate avec la base de données de Google
 dbRefProfs.on('value', (snapshot) => {
     const donnees = snapshot.val();
     listeProfs = [];
@@ -34,6 +37,9 @@ dbRefProfs.on('value', (snapshot) => {
     afficherTousLesProfs();
 });
 
+// ==========================================
+// 2. LOGIQUE METIER ET COMPTEUR
+// ==========================================
 function actualiserCompteur() {
     const compteur = document.getElementById('compteur-profs');
     if (compteur) compteur.innerText = listeProfs.length;
@@ -81,10 +87,13 @@ window.filtrerProfs = function() {
     }
 }
 
+// ==========================================
+// 3. PERSISTANCE ACTIONS (WRITE & DELETE CLOUD)
+// ==========================================
 window.likerProf = function(idUnique, noteActuelle) {
     if (noteActuelle < 5) {
         db.ref('professeurs/' + idUnique).update({ note: noteActuelle + 1 });
-        alert("Merci pour votre vote !");
+        alert("Merci pour ton vote !");
     } else {
         alert("Cet enseignant a déjà 5 étoiles !");
     }
@@ -94,7 +103,8 @@ window.supprimerProfSécure = function(idUnique) {
     let motDePasse = prompt("🔒 Entrez le code secret Admin pour supprimer :");
     if (motDePasse === CODE_SECRET_ADMIN) {
         if (confirm("Confirmez-vous le retrait de cet enseignant ?")) {
-            db.ref('professeurs/' + idUnique).remove();
+            db.ref('professeurs/' + idUnique).remove()
+                .then(() => alert("Enseignant retiré de Firebase."));
         }
     } else {
         alert("❌ Code incorrect.");
@@ -125,16 +135,17 @@ window.enregistrerProf = function(event) {
         whatsapp: whatsapp,
         note: 3 
     }).then(() => {
-        alert("Profil enregistré !");
+        alert("Félicitations ! Votre profil est enregistré sur la base de données Google !");
         document.getElementById('form-inscription').reset();
         changerOnglet('eleve');
-    });
+    }).catch((err) => alert("Erreur d'écriture : " + err));
 }
 
 window.changerOnglet = function(nomOnglet) {
     document.getElementById('page-accueil').classList.add('hidden');
     document.getElementById('page-eleve').classList.add('hidden');
     document.getElementById('page-prof').classList.add('hidden');
+
     document.getElementById('tab-accueil').classList.remove('active');
     document.getElementById('tab-eleve').classList.remove('active');
     document.getElementById('tab-prof').classList.remove('active');

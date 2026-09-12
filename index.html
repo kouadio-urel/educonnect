@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EduConnect CI</title>
     <link rel="stylesheet" href="style.css">
-    
-    <!-- Scripts Firebase Universels (Chargement garanti sans erreur 404) -->
-    <script src="https://cloudflare.com"></script>
-    <script src="https://cloudflare.com"></script>
+
+    <!-- CDN Firebase universels et ultra-compatibles (Moteur V7) -->
+    <script src="https://gstatic.com"></script>
+    <script src="https://gstatic.com"></script>
 </head>
 <body>
 
@@ -18,11 +18,8 @@
         <div id="page-accueil" class="content-area">
             <h1>EduConnect 🇨🇮</h1>
             <p>Trouve un répétiteur de confiance partout en Côte d'Ivoire.</p>
-            
-            <div class="banner-container">
-                <img src="https://unsplash.com" alt="Élèves et répétiteurs">
-            </div>
 
+            <!-- Compteur dynamique relié au Cloud -->
             <div class="stat-badge">
                 🚀 <span id="compteur-profs">0</span> répétiteurs disponibles actuellement
             </div>
@@ -31,14 +28,16 @@
             <button class="btn btn-prof" onclick="changerOnglet('prof')">👨‍🏫 Je veux donner des cours</button>
         </div>
 
-        <!-- ONGLET 2 : LISTE PROFS -->
+        <!-- ONGLET 2 : LISTE PROFS POUR LES ÉLÈVES -->
         <div id="page-eleve" class="content-area hidden">
             <h1>Trouver un Répétiteur</h1>
             <input type="text" id="moteur-recherche" class="search-bar" placeholder="🔍 Rechercher une ville, matière..." onkeyup="filtrerProfs()">
-            <div id="liste-professeurs"></div>
+            <div id="liste-professeurs">
+                <!-- Les cartes s'injecteront ici en temps réel -->
+            </div>
         </div>
 
-        <!-- ONGLET 3 : FORMULAIRE -->
+        <!-- ONGLET 3 : FORMULAIRE D'INSCRIPTION PROF -->
         <div id="page-prof" class="content-area hidden">
             <h1>Espace Répétiteur</h1>
             <form id="form-inscription" onsubmit="enregistrerProf(event)">
@@ -71,13 +70,13 @@
                 </div>
                 <div class="form-group">
                     <label for="whatsapp">Numéro WhatsApp (ex: 0708091011)</label>
-                    <input type="tel" id="whatsapp" required placeholder="Numéro sans l'indicatif (+225)">
+                    <input type="tel" id="whatsapp" required placeholder="Numéro de téléphone">
                 </div>
                 <button type="submit" class="btn btn-prof">Créer mon profil</button>
             </form>
         </div>
 
-        <!-- BARRE DE NAVIGATION -->
+        <!-- BARRE DE NAVIGATION FIXE EN BAS -->
         <div class="nav-bar">
             <div id="tab-accueil" class="nav-item active" onclick="changerOnglet('accueil')">Accueil</div>
             <div id="tab-eleve" class="nav-item" onclick="changerOnglet('eleve')">Élèves</div>
