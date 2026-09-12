@@ -79,7 +79,8 @@ function afficherTousLesProfs() {
     });
 }
 
-function filtrerProfs() {
+// Rendre la fonction accessible au HTML pour l'événement onkeyup
+window.filtrerProfs = function() {
     var saisie = document.getElementById('moteur-recherche').value.toLowerCase();
     var cartes = document.getElementsByClassName('prof-card');
     for (var i = 0; i < cartes.length; i++) {
@@ -93,9 +94,9 @@ function filtrerProfs() {
 }
 
 // ==========================================
-// 3. PERSISTANCE ACTIONS DANS LE CLOUD
+// 3. RENDER ET LIAISONS GLOBALES ( window. )
 // ==========================================
-function likerProf(idUnique, noteActuelle) {
+window.likerProf = function(idUnique, noteActuelle) {
     if (noteActuelle < 5) {
         db.ref('professeurs/' + idUnique).update({ note: noteActuelle + 1 });
         alert("Merci pour ton vote ! Note mise à jour dans la base Firebase.");
@@ -104,7 +105,7 @@ function likerProf(idUnique, noteActuelle) {
     }
 }
 
-function supprimerProfSécure(idUnique) {
+window.supprimerProfSécure = function(idUnique) {
     let motDePasse = prompt("🔒 Action réservée à la direction. Entrez le code secret Admin pour supprimer :");
     if (motDePasse === CODE_SECRET_ADMIN) {
         if (confirm("Confirmez-vous le retrait de cet enseignant de la plateforme ?")) {
@@ -116,7 +117,7 @@ function supprimerProfSécure(idUnique) {
     }
 }
 
-function ouvrirWhatsApp(numero, matiere) {
+window.ouvrirWhatsApp = function(numero, matiere) {
     var message = "Bonjour, je vous contacte depuis l'application EduConnect CI car j'ai besoin d'un répétiteur en " + matiere + ".";
     var messageEncode = encodeURIComponent(message);
     
@@ -129,7 +130,8 @@ function ouvrirWhatsApp(numero, matiere) {
     window.open(urlComplete, '_blank');
 }
 
-function enregistrerProf(event) {
+// Rendre l'enregistrement accessible globalement pour le onsubmit HTML
+window.enregistrerProf = function(event) {
     event.preventDefault(); 
     
     var nom = document.getElementById('nom').value;
@@ -154,7 +156,7 @@ function enregistrerProf(event) {
     });
 }
 
-function changerOnglet(nomOnglet) {
+window.changerOnglet = function(nomOnglet) {
     document.getElementById('page-accueil').classList.add('hidden');
     document.getElementById('page-eleve').classList.add('hidden');
     document.getElementById('page-prof').classList.add('hidden');
